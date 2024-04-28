@@ -1,0 +1,48 @@
+usePointModel:                       false                                          
+
+run_in_sim:                          false
+
+continuousTrajectory:                false
+
+usePCD:                              false
+
+fixedPoint:                          false
+
+qcmin:                               50.0
+
+qcmax:                               50.0
+
+ql:                                  4000.0
+
+quj:                                 5.0
+
+quv:                                 1.0  
+
+qs:                                  50.0
+
+jmin:                                -10
+
+jmax:                                10
+
+vsmin:                               0
+
+vsmax:                               5
+
+qc_dis:                              3.0
+
+accmin:                              [-1.0, -1.0, -1.0]
+
+accmax:                              [1.0, 1.0, 1.0]
+
+velmin:                              [-3.0, -3.0, -3.0]
+
+velmax:                              [3.0, 3.0, 3.0]
+
+posmin:                              [-100.0, -100.0, -0.5]
+
+posmax:                              [100.0, 100.0, 5]
+
+startPosition:                       [0.0, 0.0, 0.0]
+
+# odomTopic:                           "/mavros/global_position/local"
+odomTopic:                           "/visual_slam/odom"
