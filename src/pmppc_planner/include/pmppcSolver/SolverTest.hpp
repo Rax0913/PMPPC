@@ -174,7 +174,7 @@ public:
 
         
 
-        statePub.publish(cmd);
+        statePub.publish(cmd);                             
     }
 
     void visuslizeTraj(const std::vector<Eigen::Vector3d> &route)

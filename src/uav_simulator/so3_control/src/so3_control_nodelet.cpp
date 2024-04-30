@@ -49,7 +49,7 @@ private:
   bool        position_cmd_updated_, position_cmd_init_;
   std::string frame_id_;
 
-  Eigen::Vector3d des_pos_, des_vel_, des_acc_, kx_, kv_;
+  Eigen::Vector3d des_pos_, des_vel_, des_acc_, des_jerk_, kx_, kv_;
   double          des_yaw_, des_yaw_dot_;
   double          current_yaw_;
   bool            enable_motors_;
@@ -61,10 +61,11 @@ private:
 void
 SO3ControlNodelet::publishSO3Command(void)
 {
-  controller_.calculateControl(des_pos_, des_vel_, des_acc_, des_yaw_,
+  controller_.calculateControlSO3(des_pos_, des_vel_, des_acc_, des_jerk_, des_yaw_,
                                des_yaw_dot_, kx_, kv_);
 
   const Eigen::Vector3d&    force       = controller_.getComputedForce();
+  const Eigen::Vector3d&    omega       = controller_.getOmega();
   const Eigen::Quaterniond& orientation = controller_.getComputedOrientation();
 
   quadrotor_msgs::SO3Command::Ptr so3_command(
@@ -80,6 +81,7 @@ SO3ControlNodelet::publishSO3Command(void)
   so3_command->orientation.w   = orientation.w();
   for (int i = 0; i < 3; i++)
   {
+    so3_command->Om[i] = omega(i);
     so3_command->kR[i]  = kR_[i];
     so3_command->kOm[i] = kOm_[i];
   }
@@ -100,6 +102,7 @@ SO3ControlNodelet::position_cmd_callback(
   des_vel_ = Eigen::Vector3d(cmd->velocity.x, cmd->velocity.y, cmd->velocity.z);
   des_acc_ = Eigen::Vector3d(cmd->acceleration.x, cmd->acceleration.y,
                              cmd->acceleration.z);
+  des_jerk_ = Eigen::Vector3d(cmd->jerk.x, cmd->jerk.y, cmd->jerk.z);
 
   if ( cmd->kx[0] > 1e-5 || cmd->kx[1] > 1e-5 || cmd->kx[2] > 1e-5 )
   {
@@ -202,9 +205,9 @@ SO3ControlNodelet::onInit(void)
   n.param("gains/rot/x", kR_[0], 1.5);
   n.param("gains/rot/y", kR_[1], 1.5);
   n.param("gains/rot/z", kR_[2], 1.0);
-  n.param("gains/ang/x", kOm_[0], 0.13);
-  n.param("gains/ang/y", kOm_[1], 0.13);
-  n.param("gains/ang/z", kOm_[2], 0.1);
+  n.param("gains/ang/x", kOm_[0], 1.0);
+  n.param("gains/ang/y", kOm_[1], 1.0);
+  n.param("gains/ang/z", kOm_[2], 1.0);
   n.param("gains/kx/x", kx_[0], 5.7);
   n.param("gains/kx/y", kx_[1], 5.7);
   n.param("gains/kx/z", kx_[2], 6.2);

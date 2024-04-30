@@ -15,6 +15,7 @@ typedef struct _Command
 {
   float force[3];
   float qx, qy, qz, qw;
+  float Om[3];
   float kR[3];
   float kOm[3];
   float corrections[3];
@@ -114,9 +115,13 @@ getControl(const QuadrotorSimulator::Quadrotor& quad, const Command& cmd)
   float eR3 = 0.5f * (R11 * Rd12 - R12 * Rd11 + R21 * Rd22 - R22 * Rd21 +
                       R31 * Rd32 - R32 * Rd31);
 
-  float eOm1 = Om1;
-  float eOm2 = Om2;
-  float eOm3 = Om3;
+  float eOm1 = cmd.Om[0] - Om1;
+  float eOm2 = cmd.Om[1] - Om2;
+  float eOm3 = cmd.Om[2] - Om3;
+
+  // float eOm1 = Om1;
+  // float eOm2 = Om2;
+  // float eOm3 = Om3;
 
   float in1 = Om2 * (I[2][0] * Om1 + I[2][1] * Om2 + I[2][2] * Om3) -
               Om3 * (I[1][0] * Om1 + I[1][1] * Om2 + I[1][2] * Om3);
@@ -138,9 +143,9 @@ getControl(const QuadrotorSimulator::Quadrotor& quad, const Command& cmd)
     float muR3 = -deltaR*deltaR * eA3 / (deltaR * neA + epsilonR);
     // Robust Control --------------------------------------------
   */
-  float M1 = -cmd.kR[0] * eR1 - cmd.kOm[0] * eOm1 + in1; // - I[0][0]*muR1;
-  float M2 = -cmd.kR[1] * eR2 - cmd.kOm[1] * eOm2 + in2; // - I[1][1]*muR2;
-  float M3 = -cmd.kR[2] * eR3 - cmd.kOm[2] * eOm3 + in3; // - I[2][2]*muR3;
+  float M1 = -cmd.kR[0] * eR1 + cmd.kOm[0] * eOm1 + in1; // - I[0][0]*muR1;
+  float M2 = -cmd.kR[1] * eR2 + cmd.kOm[1] * eOm2 + in2; // - I[1][1]*muR2;
+  float M3 = -cmd.kR[2] * eR3 + cmd.kOm[2] * eOm3 + in3; // - I[2][2]*muR3;
 
   float w_sq[4];
   w_sq[0] = force / (4 * kf) - M2 / (2 * d * kf) + M3 / (4 * km);
@@ -165,6 +170,9 @@ cmd_callback(const quadrotor_msgs::SO3Command::ConstPtr& cmd)
   command.force[0]         = cmd->force.x;
   command.force[1]         = cmd->force.y;
   command.force[2]         = cmd->force.z;
+  command.Om[0]            = cmd->Om[0];
+  command.Om[1]            = cmd->Om[1];
+  command.Om[2]            = cmd->Om[2];
   command.qx               = cmd->orientation.x;
   command.qy               = cmd->orientation.y;
   command.qz               = cmd->orientation.z;
